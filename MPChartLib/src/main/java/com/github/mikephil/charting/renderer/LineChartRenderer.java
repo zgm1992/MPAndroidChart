@@ -700,9 +700,61 @@ public class LineChartRenderer extends LineRadarRenderer {
     float touchDownY;
     float valueScale = 0;
     float originEntryY;
+    boolean touchStart = false;
+    private MPPointD performanceEntryDrag(ILineDataSet set, Entry e, MPPointD pix) {
+        MotionEvent motionEvent = mViewPortHandler.getEvent();
+        if (motionEvent == null || e.getIcon() == null){
+            return pix;
+        }
+
+        //因为setMotionEvent 是没有做 缓存队列处理的，所以这里判断逻辑做兼容
+        if (motionEvent.getAction() == MotionEvent.ACTION_UP){
+            highLightedEntry = null;
+            touchStart = false;
+        } else {
+            touchStart = true;
+        }
+
+        //手势处理的过程中,如果一直没有选取到合适的点，则一直做选取处理
+        if (touchStart && highLightedEntry==null){
+            float touchX = mViewPortHandler.getTouchX();
+            float touchY = mViewPortHandler.getTouchY();
+            Drawable drawable = e.getIcon();
+            float gesturePadding = 1.2f;
+            if (touchX < (pix.x + drawable.getIntrinsicWidth() * gesturePadding)
+                    && touchX > (pix.x - drawable.getIntrinsicWidth() * gesturePadding)
+                    && touchY < (pix.y + drawable.getIntrinsicWidth() * gesturePadding)
+                    && touchY > (pix.y - drawable.getIntrinsicWidth() * gesturePadding)
+            ) {
+                highLightedEntry = e;
+                touchDownX = touchX;
+                touchDownY = touchY;
+                originEntryY = highLightedEntry.getY();
+            }
+        }
+
+        //选取到了对应的点后，监听拖拽处理
+        if (highLightedEntry != null) {
+            //点击选中之后的拖拽处理
+            if (valueScale == 0) {
+                Transformer trans = mChart.getTransformer(set.getAxisDependency());
+                float[] buf = new float[4];
+                buf[1] = 0;
+                buf[3] = 1;
+                trans.pointValuesToPixel(buf);
+                valueScale = buf[3] - buf[1];
+            }
+            float y = mViewPortHandler.getTouchY() - touchDownY;
+            highLightedEntry.setY(y / valueScale + originEntryY);
+            pix = mChart.getTransformer(set.getAxisDependency()).getPixelForValues(e.getX(), e.getY() * mAnimator
+                    .getPhaseY());
+        }
 
 
-    
+//        Log.i("jarvanTrace","click down , highLightedEntry ->"+highLightedEntry+" touch  x ->"+touchX+"  touch y ->"+touchY+" pix.x ->"+pix.x+"  pix.y ->"+pix.y);
+
+        return pix;
+    }
 
 
     @Override
@@ -726,48 +778,8 @@ public class LineChartRenderer extends LineRadarRenderer {
             MPPointD pix = mChart.getTransformer(set.getAxisDependency()).getPixelForValues(e.getX(), e.getY() * mAnimator
                     .getPhaseY());
 
-            MotionEvent motionEvent = mViewPortHandler.getEvent();
-            if (motionEvent != null && e.getIcon() != null) {
-                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) { //按下判断手势落下的区域是否为有效的图片区域
-                    float touchX = mViewPortHandler.getTouchX();
-                    float touchY = mViewPortHandler.getTouchY();
-                    Drawable drawable = e.getIcon();
-                    float gesturePadding = 1.5f;
-                    if (touchX < (pix.x + drawable.getIntrinsicWidth() * gesturePadding)
-                            && touchX > (pix.x - drawable.getIntrinsicWidth() * gesturePadding)
-                            && touchY < (pix.y + drawable.getIntrinsicWidth() * gesturePadding)
-                            && touchY > (pix.y - drawable.getIntrinsicWidth() * gesturePadding)
-                    ){
-                        highLightedEntry = e;
-                        touchDownX = touchX;
-                        touchDownY = touchY;
-                        originEntryY = highLightedEntry.getY();
-                    }
-
-                } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                    highLightedEntry = null;
-                } else if (highLightedEntry != null) { //按下的之后的处理
-                    if (valueScale == 0){
-                        Transformer trans = mChart.getTransformer(set.getAxisDependency());
-                        float[] buf = new float[4];
-                        buf[1] = 0;
-                        buf[3] = 1;
-                        trans.pointValuesToPixel(buf);
-                        valueScale = buf[3] - buf[1];
-                    }
-                    float y = mViewPortHandler.getTouchY() - touchDownY;
-                    highLightedEntry.setY(y/valueScale+originEntryY);
-                    Log.i("highLightTouch"," the item touch swife y  is ->"+y+ " scale y is ->"+valueScale+"  ");
-
-                }
-            } else {
-                highLightedEntry = null;
-            }
-
-
-            //被修改数值之后，再次生成
-            pix = mChart.getTransformer(set.getAxisDependency()).getPixelForValues(e.getX(), e.getY() * mAnimator
-                    .getPhaseY());
+            //校验和执行点击拖拽某个数据点
+            pix = performanceEntryDrag(set, e, pix);
 
             high.setDraw((float) pix.x, (float) pix.y);
             // draw the lines

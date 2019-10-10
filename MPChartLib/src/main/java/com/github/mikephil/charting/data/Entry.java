@@ -58,6 +58,12 @@ public class Entry extends BaseEntry implements Parcelable {
         this.x = x;
     }
 
+
+    public Entry(float x, float y, Drawable icon,Drawable highLite) {
+        super(y, icon,highLite);
+        this.x = x;
+    }
+
     /**
      * A Entry represents one single entry in the chart.
      *

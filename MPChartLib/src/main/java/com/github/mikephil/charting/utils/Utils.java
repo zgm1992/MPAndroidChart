@@ -527,7 +527,7 @@ public abstract class Utils {
                                  Drawable drawable,
                                  int x, int y,
                                  int width, int height) {
-
+        if (drawable == null) return;
         MPPointF drawOffset = MPPointF.getInstance();
         drawOffset.x = x - (width / 2);
         drawOffset.y = y - (height / 2);

@@ -710,6 +710,13 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
     protected IMarker mMarker;
 
     /**
+     * the view marker interval
+     */
+    protected float mMarkerInterval = 50f;
+
+
+
+    /**
      * draws all MarkerViews on the highlighted positions
      */
     protected void drawMarkers(Canvas canvas) {
@@ -741,7 +748,7 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
             mMarker.refreshContent(e, highlight);
 
             // draw the marker
-            mMarker.draw(canvas, pos[0], pos[1]);
+            mMarker.draw(canvas, pos[0], pos[1] - mMarkerInterval);
         }
     }
 

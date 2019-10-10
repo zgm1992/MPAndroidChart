@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
+import android.view.MotionEvent;
 
 import com.github.mikephil.charting.animation.ChartAnimator;
 import com.github.mikephil.charting.charts.LineChart;
@@ -56,6 +58,7 @@ public class LineChartRenderer extends LineRadarRenderer {
 
     protected Path cubicPath = new Path();
     protected Path cubicFillPath = new Path();
+    Entry highLightedEntry = null;
 
     public LineChartRenderer(LineDataProvider chart, ChartAnimator animator,
                              ViewPortHandler viewPortHandler) {
@@ -571,15 +574,19 @@ public class LineChartRenderer extends LineRadarRenderer {
                         drawValue(c, formatter.getPointLabel(entry), x, y - valOffset, dataSet.getValueTextColor(j / 2));
                     }
 
-                    if (entry.getIcon() != null && dataSet.isDrawIconsEnabled()) {
-
-                        Drawable icon = entry.getIcon();
+                    if (dataSet.isDrawIconsEnabled()) {
+                        Drawable icon = null;
+                        if (highLightedEntry == entry && entry.getHighLitIcon() != null) {
+                            icon = entry.getHighLitIcon();
+                        } else {
+                            icon = entry.getIcon();
+                        }
 
                         Utils.drawImage(
                                 c,
                                 icon,
-                                (int)(x + iconsOffset.x),
-                                (int)(y + iconsOffset.y),
+                                (int) (x + iconsOffset.x),
+                                (int) (y + iconsOffset.y),
                                 icon.getIntrinsicWidth(),
                                 icon.getIntrinsicHeight());
                     }
@@ -689,6 +696,15 @@ public class LineChartRenderer extends LineRadarRenderer {
         }
     }
 
+    float touchDownX;
+    float touchDownY;
+    float valueScale = 0;
+    float originEntryY;
+
+
+    
+
+
     @Override
     public void drawHighlighted(Canvas c, Highlight[] indices) {
 
@@ -706,13 +722,57 @@ public class LineChartRenderer extends LineRadarRenderer {
             if (!isInBoundsX(e, set))
                 continue;
 
+
             MPPointD pix = mChart.getTransformer(set.getAxisDependency()).getPixelForValues(e.getX(), e.getY() * mAnimator
                     .getPhaseY());
 
-            high.setDraw((float) pix.x, (float) pix.y);
+            MotionEvent motionEvent = mViewPortHandler.getEvent();
+            if (motionEvent != null && e.getIcon() != null) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) { //按下判断手势落下的区域是否为有效的图片区域
+                    float touchX = mViewPortHandler.getTouchX();
+                    float touchY = mViewPortHandler.getTouchY();
+                    Drawable drawable = e.getIcon();
+                    float gesturePadding = 1.5f;
+                    if (touchX < (pix.x + drawable.getIntrinsicWidth() * gesturePadding)
+                            && touchX > (pix.x - drawable.getIntrinsicWidth() * gesturePadding)
+                            && touchY < (pix.y + drawable.getIntrinsicWidth() * gesturePadding)
+                            && touchY > (pix.y - drawable.getIntrinsicWidth() * gesturePadding)
+                    ){
+                        highLightedEntry = e;
+                        touchDownX = touchX;
+                        touchDownY = touchY;
+                        originEntryY = highLightedEntry.getY();
+                    }
 
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    highLightedEntry = null;
+                } else if (highLightedEntry != null) { //按下的之后的处理
+                    if (valueScale == 0){
+                        Transformer trans = mChart.getTransformer(set.getAxisDependency());
+                        float[] buf = new float[4];
+                        buf[1] = 0;
+                        buf[3] = 1;
+                        trans.pointValuesToPixel(buf);
+                        valueScale = buf[3] - buf[1];
+                    }
+                    float y = mViewPortHandler.getTouchY() - touchDownY;
+                    highLightedEntry.setY(y/valueScale+originEntryY);
+                    Log.i("highLightTouch"," the item touch swife y  is ->"+y+ " scale y is ->"+valueScale+"  ");
+
+                }
+            } else {
+                highLightedEntry = null;
+            }
+
+
+            //被修改数值之后，再次生成
+            pix = mChart.getTransformer(set.getAxisDependency()).getPixelForValues(e.getX(), e.getY() * mAnimator
+                    .getPhaseY());
+
+            high.setDraw((float) pix.x, (float) pix.y);
             // draw the lines
             drawHighlightLines(c, (float) pix.x, (float) pix.y, set);
+
         }
     }
 

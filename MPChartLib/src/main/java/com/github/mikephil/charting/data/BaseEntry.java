@@ -16,6 +16,8 @@ public abstract class BaseEntry {
     /** optional icon image */
     private Drawable mIcon = null;
 
+    private Drawable mHighLitIcon = null;
+
     public BaseEntry() {
 
     }
@@ -34,6 +36,12 @@ public abstract class BaseEntry {
         this.mIcon = icon;
     }
 
+    public BaseEntry(float y, Drawable icon,Drawable hightIcon) {
+        this(y);
+        this.mIcon = icon;
+        this.mHighLitIcon = hightIcon;
+    }
+
     public BaseEntry(float y, Drawable icon, Object data) {
         this(y);
         this.mIcon = icon;
@@ -49,6 +57,14 @@ public abstract class BaseEntry {
         return y;
     }
 
+    public Drawable getHighLitIcon() {
+        return mHighLitIcon;
+    }
+
+    public void setHighLitIcon(Drawable highLitIcon) {
+        this.mHighLitIcon = highLitIcon;
+    }
+
     /**
      * Sets the icon drawable
      *
@@ -57,6 +73,7 @@ public abstract class BaseEntry {
     public void setIcon(Drawable icon) {
         this.mIcon = icon;
     }
+
 
     /**
      * Returns the icon of this Entry.

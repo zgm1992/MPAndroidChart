@@ -3,6 +3,7 @@ package com.github.mikephil.charting.utils;
 
 import android.graphics.Matrix;
 import android.graphics.RectF;
+import android.view.MotionEvent;
 import android.view.View;
 
 /**
@@ -76,11 +77,43 @@ public class ViewPortHandler {
      */
     private float mTransOffsetY = 0f;
 
+    private MotionEvent event = null;
+
+    //因为坐标event 执行到了highLight 函数时候，会莫名的出现y偏移,所以这里做贮存
+    private float touchY = Integer.MIN_VALUE;
+    private float touchX  = Integer.MIN_VALUE;
+
+
+
     /**
      * Constructor - don't forget calling setChartDimens(...)
      */
     public ViewPortHandler() {
 
+    }
+
+    public float getTouchY() {
+        return touchY;
+    }
+
+    public void setTouchY(float touchY) {
+        this.touchY = touchY;
+    }
+
+    public float getTouchX() {
+        return touchX;
+    }
+
+    public void setTouchX(float touchX) {
+        this.touchX = touchX;
+    }
+
+    public MotionEvent getEvent() {
+        return event;
+    }
+
+    public void setEvent(MotionEvent event) {
+        this.event = event;
     }
 
     /**

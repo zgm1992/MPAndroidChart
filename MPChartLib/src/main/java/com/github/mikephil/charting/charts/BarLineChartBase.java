@@ -560,8 +560,11 @@ public abstract class BarLineChartBase<T extends BarLineScatterCandleBubbleData<
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Log.i("highLightTouch","original x ->"+event.getX()+" y ->"+event.getY());
         super.onTouchEvent(event);
-
+        mViewPortHandler.setEvent(event);
+        mViewPortHandler.setTouchX(event.getX());
+        mViewPortHandler.setTouchY(event.getY());
         if (mChartTouchListener == null || mData == null)
             return false;
 

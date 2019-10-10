@@ -126,7 +126,7 @@ public class LineChartActivity1 extends DemoBase implements OnSeekBarChangeListe
             yAxis.enableGridDashedLine(10f, 10f, 0f);
 
             // axis range
-            yAxis.setAxisMaximum(200f);
+            yAxis.setAxisMaximum(150f);
             yAxis.setAxisMinimum(-50f);
         }
 
@@ -164,9 +164,9 @@ public class LineChartActivity1 extends DemoBase implements OnSeekBarChangeListe
         }
 
         // add data
-        seekBarX.setProgress(45);
+        seekBarX.setProgress(12);
         seekBarY.setProgress(180);
-        setData(45, 180);
+        setData(12, 180);
 
         // draw points over time
         chart.animateX(1500);
@@ -185,7 +185,7 @@ public class LineChartActivity1 extends DemoBase implements OnSeekBarChangeListe
         for (int i = 0; i < count; i++) {
 
             float val = (float) (Math.random() * range) - 30;
-            values.add(new Entry(i, val, getResources().getDrawable(R.drawable.star)));
+            values.add(new Entry(i, val, getResources().getDrawable(R.drawable.star), getResources().getDrawable(R.drawable.ic_launcher)));
         }
 
         LineDataSet set1;
@@ -201,7 +201,7 @@ public class LineChartActivity1 extends DemoBase implements OnSeekBarChangeListe
             // create a dataset and give it a type
             set1 = new LineDataSet(values, "DataSet 1");
 
-            set1.setDrawIcons(false);
+            set1.setDrawIcons(true);
 
             // draw dashed line
             set1.enableDashedLine(10f, 5f, 0f);
